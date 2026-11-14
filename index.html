@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>Interactive Radar Systems &amp; DSP Simulation Workbench | FMCW / Pulsed / CW</title>
+  <title> Radar Systems   | FMCW / Pulsed </title>
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
@@ -17,14 +17,22 @@
         </div>
         <div class="brand-titles">
           <div class="title-row">
-            <h1>Interactive Radar Systems &amp; DSP Simulation Workbench</h1>
-            <span class="version-badge">FMCW / CW / Pulsed Lab v2.0</span>
+            <h1> Radar Systems  </h1>
+            <span class="version-badge">FMCW / Pulsed </span>
           </div>
-          <p class="subtitle">Real-Time Physical &amp; Mathematical Signal Processing Simulator (Static GitHub Pages Edition)</p>
+          <p class="subtitle">Real-Time Physical &amp; Mathematical Signal Processing Simulator </p>
         </div>
       </div>
 
       <div class="sim-controls" role="group" aria-label="Simulation Playback Controls">
+        <div class="zoom-controls" role="group" aria-label="Interface Zoom Controls">
+          <button id="btn-zoom-out" class="ctrl-btn btn-slate zoom-btn" type="button" title="Zoom Out UI to fit presentation slide">&#8722;</button>
+          <button id="btn-zoom-reset" class="ctrl-btn btn-slate zoom-val-btn" type="button" title="Reset UI Zoom to 100%">
+            <span id="zoom-level-text">100%</span>
+          </button>
+          <button id="btn-zoom-in" class="ctrl-btn btn-slate zoom-btn" type="button" title="Zoom In UI">&#43;</button>
+        </div>
+        
         <button id="btn-play-pause" class="ctrl-btn btn-amber" type="button" title="Toggle real-time waveform propagation">
           <span id="play-pause-icon" aria-hidden="true">&#10074;&#10074;</span>
           <span id="play-pause-text">Pause Waveforms</span>

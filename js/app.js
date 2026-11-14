@@ -433,6 +433,29 @@
         updateUIReadouts();
       });
     }
+
+    // UI Zoom Controls for Presentation Embedding
+    let uiScale = 1.0;
+    const appShell = document.querySelector('.app-shell');
+
+    const applyZoom = (newScale) => {
+      uiScale = Math.min(1.3, Math.max(0.5, Math.round(newScale * 20) / 20));
+      if (appShell) {
+        appShell.style.setProperty('--ui-scale', String(uiScale));
+      }
+      setText('zoom-level-text', `${Math.round(uiScale * 100)}%`);
+      window.requestAnimationFrame(renderActiveView);
+    };
+
+    const zoomOutBtn = document.getElementById('btn-zoom-out');
+    const zoomInBtn = document.getElementById('btn-zoom-in');
+    const zoomResetBtn = document.getElementById('btn-zoom-reset');
+
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => applyZoom(uiScale - 0.05));
+    if (zoomInBtn) zoomInBtn.addEventListener('click', () => applyZoom(uiScale + 0.05));
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => applyZoom(1.0));
+
+
   }
 
   // Initialize Workbench on DOMContentLoaded

@@ -60,8 +60,11 @@ html, body {
 
 /* ==================== MASTER APPLICATION SHELL ==================== */
 .app-shell {
-  width: 100vw;
-  height: 100dvh;
+  --ui-scale: 1;
+  width: calc(100vw / var(--ui-scale));
+  height: calc(100dvh / var(--ui-scale));
+  transform: scale(var(--ui-scale));
+  transform-origin: top left;
   display: grid;
   grid-template-rows: 48px 42px 1fr 24px;
   overflow: hidden;
@@ -927,4 +930,53 @@ input[type="range"] {
   .panel-card { padding: 7px 10px; }
   .metric-box { padding: 4px 6px; }
   .eng-table th, .eng-table td { padding: 4px 8px; font-size: 10.5px; }
+}
+
+/* ==================== UI ZOOM CONTROLS & GRID OVERFLOW FIX ==================== */
+.zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(9, 13, 22, 0.9);
+  border: 1px solid var(--border-focus);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-right: 4px;
+}
+
+.zoom-btn {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 5px 9px !important;
+  font-size: 13px !important;
+  line-height: 1;
+}
+
+.zoom-val-btn {
+  border: none !important;
+  border-left: 1px solid var(--border-subtle) !important;
+  border-right: 1px solid var(--border-subtle) !important;
+  border-radius: 0 !important;
+  padding: 5px 7px !important;
+  font-family: var(--font-mono);
+  min-width: 48px;
+  justify-content: center;
+  color: var(--cyan-light) !important;
+}
+
+/* Prevents long block descriptions from pushing the right column off-screen */
+.fmcw-top-strip,
+.arch-inspector-card,
+.target-lane-card,
+.arch-detail-bar,
+.fmcw-bottom-split {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.arch-detail-text {
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

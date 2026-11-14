@@ -14,9 +14,10 @@
   function prepareCanvas(canvas) {
     if (!canvas) return null;
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    const targetW = Math.max(1, Math.floor(rect.width * dpr));
-    const targetH = Math.max(1, Math.floor(rect.height * dpr));
+    const cssW = canvas.clientWidth || 1;
+    const cssH = canvas.clientHeight || 1;
+    const targetW = Math.max(1, Math.floor(cssW * dpr));
+    const targetH = Math.max(1, Math.floor(cssH * dpr));
 
     if (canvas.width !== targetW || canvas.height !== targetH) {
       canvas.width = targetW;
@@ -25,7 +26,7 @@
 
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { ctx, W: rect.width, H: rect.height };
+    return { ctx, W: cssW, H: cssH };
   }
 
   /** Draws standard dark laboratory oscilloscope graticule grid */
