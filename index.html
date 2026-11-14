@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self';" />
+  <title>Interactive Radar Systems &amp; DSP Simulation Workbench | FMCW / Pulsed / CW</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ==================== TOP APPLICATION HEADER ==================== -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-icon" aria-hidden="true">
+          <span class="radar-dot"></span>
+        </div>
+        <div class="brand-titles">
+          <div class="title-row">
+            <h1>Interactive Radar Systems &amp; DSP Simulation Workbench</h1>
+            <span class="version-badge">FMCW / CW / Pulsed Lab v2.0</span>
+          </div>
+          <p class="subtitle">Real-Time Physical &amp; Mathematical Signal Processing Simulator (Static GitHub Pages Edition)</p>
+        </div>
+      </div>
+
+      <div class="sim-controls" role="group" aria-label="Simulation Playback Controls">
+        <button id="btn-play-pause" class="ctrl-btn btn-amber" type="button" title="Toggle real-time waveform propagation">
+          <span id="play-pause-icon" aria-hidden="true">&#10074;&#10074;</span>
+          <span id="play-pause-text">Pause Waveforms</span>
+        </button>
+        <button id="btn-step" class="ctrl-btn btn-cyan" type="button" title="Advance simulation phase by one discrete time step">
+          <span>&#9654;| Step +1 Frame</span>
+        </button>
+        <button id="btn-reset" class="ctrl-btn btn-slate" type="button" title="Restore all radar parameters to standard engineering defaults">
+          <span>&#8634; Reset Defaults</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================== PERSISTENT TOP TAB NAVIGATION ==================== -->
+    <nav class="tab-navbar" aria-label="Simulation Modules">
+      <button class="tab-btn" data-tab="fm" type="button">
+        <span class="tab-num">01</span>
+        <div class="tab-meta">
+          <span class="tab-title">FM &amp; Chirp Synthesizer</span>
+          <span class="tab-sub">Linear Frequency Sweep &amp; Phase Integral</span>
+        </div>
+      </button>
+      <button class="tab-btn" data-tab="pulsed" type="button">
+        <span class="tab-num">02</span>
+        <div class="tab-meta">
+          <span class="tab-title">Pulsed Radar (ToF)</span>
+          <span class="tab-sub">Blind Zone &amp; Range Ambiguity</span>
+        </div>
+      </button>
+      <button class="tab-btn" data-tab="cw" type="button">
+        <span class="tab-num">03</span>
+        <div class="tab-meta">
+          <span class="tab-title">CW Doppler Radar</span>
+          <span class="tab-sub">Radial Velocity &amp; Phase Invariance</span>
+        </div>
+      </button>
+      <button class="tab-btn active" data-tab="fmcw" type="button">
+        <span class="tab-num">04</span>
+        <div class="tab-meta">
+          <span class="tab-title">FMCW System Workbench</span>
+          <span class="tab-sub">RF Mixer, Range FFT &amp; Resolution Lab</span>
+        </div>
+      </button>
+      <button class="tab-btn" data-tab="compare" type="button">
+        <span class="tab-num">05</span>
+        <div class="tab-meta">
+          <span class="tab-title">Architecture Comparison &amp; Math</span>
+          <span class="tab-sub">Engineering Trade-offs &amp; Formula Sheet</span>
+        </div>
+      </button>
+    </nav>
+
+    <!-- ==================== MAIN VIEWPORT WORKSPACE ==================== -->
+    <main class="workspace-container">
+
+      <!-- ================================================================
+           VIEW 1: FREQUENCY MODULATION & CHIRP SYNTHESIZER
+           ================================================================ -->
+      <section id="view-fm" class="tab-view" aria-labelledby="fm-heading">
+        <div class="view-grid-2col">
+          <!-- Left Dock: Controls & Metrics -->
+          <aside class="control-dock">
+            <div class="panel-card">
+              <div class="panel-header">
+                <h2 id="fm-heading">Chirp Synthesizer Parameters</h2>
+                <span class="panel-tag">VCO / PLL</span>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Frequency Modulation Pattern:</label>
+                <div class="segmented-row">
+                  <button type="button" class="seg-btn fm-pattern-btn active" data-pattern="sawtooth">Sawtooth</button>
+                  <button type="button" class="seg-btn fm-pattern-btn" data-pattern="triangle">Triangular</button>
+                  <button type="button" class="seg-btn fm-pattern-btn" data-pattern="sine">Sinusoidal</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="fm-bw">Sweep Bandwidth (B)</label>
+                  <span id="fm-bw-val" class="mono-val text-cyan">500 MHz</span>
+                </div>
+                <input id="fm-bw" type="range" min="100" max="2000" step="50" value="500" />
+                <p class="control-hint">Higher bandwidth B compresses the waveform at sweep end and sharpens range resolution.</p>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="fm-tc">Chirp Sweep Duration (T_c)</label>
+                  <span id="fm-tc-val" class="mono-val text-emerald">50 &micro;s</span>
+                </div>
+                <input id="fm-tc" type="range" min="10" max="200" step="5" value="50" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="fm-fc">Visual Base Carrier (f_c scale)</label>
+                  <span id="fm-fc-val" class="mono-val text-purple">4x</span>
+                </div>
+                <input id="fm-fc" type="range" min="2" max="10" step="1" value="4" />
+              </div>
+
+              <div class="metrics-grid-2x2">
+                <div class="metric-box border-cyan">
+                  <div class="metric-top">
+                    <span>Chirp Rate / Slope (S)</span>
+                    <code>S = B / T_c</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="fm-metric-slope" class="metric-num">10.00</span>
+                    <span class="metric-unit">MHz/&micro;s</span>
+                  </div>
+                </div>
+                <div class="metric-box border-emerald">
+                  <div class="metric-top">
+                    <span>Theoretical Range Res (&Delta;R)</span>
+                    <code>c / 2B</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="fm-metric-res" class="metric-num">30.0</span>
+                    <span class="metric-unit">cm</span>
+                  </div>
+                </div>
+                <div class="metric-box border-purple">
+                  <div class="metric-top">
+                    <span>Time-Bandwidth Product</span>
+                    <code>TBP = B&middot;T_c</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="fm-metric-tbp" class="metric-num">25000</span>
+                    <span class="metric-unit">1</span>
+                  </div>
+                </div>
+                <div class="metric-box border-amber">
+                  <div class="metric-top">
+                    <span>Instantaneous Phase Law</span>
+                    <code>&int; 2&pi;f(t)dt</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span class="metric-num">Quadratic</span>
+                    <span class="metric-unit">&phi;(t) &propto; t&sup2;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right Area: Theory Banner + Dual Synchronized Scope -->
+          <div class="viz-column">
+            <div class="theory-banner border-cyan">
+              <div class="theory-text">
+                <span class="theory-pill pill-cyan">Linear Frequency Modulation (LFM)</span>
+                <h3>Instantaneous Frequency f(t) vs. Accumulated Phase &phi;(t)</h3>
+                <p>
+                  In an FMCW radar chirp, signal amplitude remains constant while instantaneous frequency sweeps linearly with slope
+                  <code>S = B / T_c</code>. Because phase is the time-integral of frequency, a linear frequency ramp generates a
+                  quadratic phase progression <code>&phi;(t) = 2&pi;(f_c&middot;t + &frac12;S&middot;t&sup2;)</code>, mapping time delay directly into frequency shift.
+                </p>
+              </div>
+              <div class="formula-card">
+                <div><code>f(t) = f_c + (B / T_c)&middot;t</code></div>
+                <div><code>s(t) = cos(2&pi;&middot;f_c&middot;t + &pi;&middot;S&middot;t&sup2;)</code></div>
+              </div>
+            </div>
+
+            <div class="scope-card flex-fill">
+              <div class="scope-header">
+                <div>
+                  <h3>Synchronized Instantaneous Frequency f(t) &amp; Time-Domain Waveform s(t)</h3>
+                  <p>Top Trace: Frequency Sweep Law f(t) | Bottom Trace: Synthesized RF Carrier s(t) = cos(&phi;(t))</p>
+                </div>
+                <span id="fm-scope-badge" class="scope-badge badge-cyan">Slope S = 10.00 MHz/&micro;s</span>
+              </div>
+              <div class="canvas-holder">
+                <canvas id="canvas-fm-scope"></canvas>
+              </div>
+              <div class="scope-footer">
+                <span>Engineering Note: Modern 77 GHz automotive radars sweep up to B = 4 GHz in microseconds, achieving &Delta;R = 3.75 cm range resolution.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           VIEW 2: PULSED RADAR (TIME-OF-FLIGHT)
+           ================================================================ -->
+      <section id="view-pulsed" class="tab-view" aria-labelledby="pulsed-heading">
+        <div class="view-grid-2col">
+          <!-- Left Dock -->
+          <aside class="control-dock">
+            <div class="panel-card">
+              <div class="panel-header">
+                <h2 id="pulsed-heading">Pulsed Radar Timing Controls</h2>
+                <span class="panel-tag">ToF / Duplexer</span>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="pulsed-range">True Target Range (R)</label>
+                  <span id="pulsed-range-val" class="mono-val text-amber">12.0 km</span>
+                </div>
+                <input id="pulsed-range" type="range" min="0.5" max="28" step="0.5" value="12" />
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="pulsed-tau">Transmitted Pulse Width (&tau;_p)</label>
+                  <span id="pulsed-tau-val" class="mono-val text-cyan">10 &micro;s</span>
+                </div>
+                <input id="pulsed-tau" type="range" min="2" max="40" step="1" value="10" />
+                <p class="control-hint">Wider pulses increase transmitted energy for long range but expand the near-field Blind Zone.</p>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="pulsed-pri">Pulse Repetition Interval (PRI)</label>
+                  <span id="pulsed-pri-val" class="mono-val text-emerald">120 &micro;s (8.33 kHz)</span>
+                </div>
+                <input id="pulsed-pri" type="range" min="50" max="200" step="5" value="120" />
+              </div>
+
+              <div id="pulsed-alert-box" class="alert-banner hidden" role="alert">
+                <span class="alert-icon">&#9888;</span>
+                <p id="pulsed-alert-text">Warning message placeholder</p>
+              </div>
+
+              <div class="metrics-grid-2x2">
+                <div class="metric-box border-cyan">
+                  <div class="metric-top">
+                    <span>Round-Trip Delay (&Delta;t)</span>
+                    <code>2R / c</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="pulsed-metric-delay" class="metric-num">80.0</span>
+                    <span class="metric-unit">&micro;s</span>
+                  </div>
+                </div>
+                <div id="card-pulsed-rmin" class="metric-box border-rose">
+                  <div class="metric-top">
+                    <span>Blind Zone (R_min)</span>
+                    <code>c&middot;&tau;_p / 2</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="pulsed-metric-rmin" class="metric-num">1.50</span>
+                    <span class="metric-unit">km</span>
+                  </div>
+                </div>
+                <div id="card-pulsed-rmax" class="metric-box border-emerald">
+                  <div class="metric-top">
+                    <span>Max Unambiguous (R_max)</span>
+                    <code>c&middot;PRI / 2</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="pulsed-metric-rmax" class="metric-num">18.0</span>
+                    <span class="metric-unit">km</span>
+                  </div>
+                </div>
+                <div class="metric-box border-amber">
+                  <div class="metric-top">
+                    <span>Radar Measured Range</span>
+                    <code id="pulsed-metric-duty">Duty: 8.3%</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="pulsed-metric-rmeas" class="metric-num">12.00</span>
+                    <span id="pulsed-metric-rmeas-unit" class="metric-unit">km</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right Area: Physical Propagation + A-Scope -->
+          <div class="viz-column">
+            <div class="scope-card flex-1">
+              <div class="scope-header">
+                <div>
+                  <h3>Physical Space Pulse Propagation &amp; Duplexer Blind Zone</h3>
+                  <p>Red Shaded Zone: Receiver blanked while TX pulse is active (R_min) | Amber Dashed Line: Unambiguous Range Limit (R_max)</p>
+                </div>
+                <span id="pulsed-scene-badge" class="scope-badge badge-amber">R = 12.0 km</span>
+              </div>
+              <div class="canvas-holder">
+                <canvas id="canvas-pulsed-scene"></canvas>
+              </div>
+            </div>
+
+            <div class="scope-card flex-1">
+              <div class="scope-header">
+                <div>
+                  <h3>A-Scope Timing Diagram: Transmitted Pulses (TX) vs. Target Echo (RX)</h3>
+                  <p>Range is computed from direct round-trip time-of-flight &Delta;t = 2R/c between TX leading edge and RX echo arrival</p>
+                </div>
+                <span id="pulsed-scope-badge" class="scope-badge badge-rose">&Delta;t = 80.0 &micro;s</span>
+              </div>
+              <div class="canvas-holder">
+                <canvas id="canvas-pulsed-scope"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           VIEW 3: CW DOPPLER RADAR
+           ================================================================ -->
+      <section id="view-cw" class="tab-view" aria-labelledby="cw-heading">
+        <div class="view-grid-2col">
+          <!-- Left Dock -->
+          <aside class="control-dock">
+            <div class="panel-card">
+              <div class="panel-header">
+                <h2 id="cw-heading">CW Doppler Radar Controls</h2>
+                <span class="panel-tag">Unmodulated CW</span>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="cw-vel">Target Radial Velocity (v)</label>
+                  <span id="cw-vel-val" class="mono-val text-emerald">+60 m/s (216 km/h)</span>
+                </div>
+                <input id="cw-vel" type="range" min="-140" max="140" step="5" value="60" />
+                <div class="scale-labels">
+                  <span>Receding (-140 m/s)</span>
+                  <span>Stationary (0)</span>
+                  <span>Approaching (+140 m/s)</span>
+                </div>
+              </div>
+
+              <div class="control-group highlight-box-amber">
+                <div class="slider-header">
+                  <label for="cw-dist">Experiment: Target Distance (R)</label>
+                  <span id="cw-dist-val" class="mono-val text-amber">120 m</span>
+                </div>
+                <input id="cw-dist" type="range" min="10" max="500" step="5" value="120" />
+                <p class="control-hint">
+                  Notice: Moving distance R shifts the time-domain phase &Delta;&phi; but leaves the FFT Doppler frequency peak completely unchanged! Pure CW cannot measure range.
+                </p>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="cw-fc">Radar Carrier Frequency (f_c)</label>
+                  <span id="cw-fc-val" class="mono-val text-cyan">24 GHz</span>
+                </div>
+                <input id="cw-fc" type="range" min="10" max="77" step="1" value="24" />
+              </div>
+
+              <div class="metrics-grid-2x2">
+                <div class="metric-box border-purple">
+                  <div class="metric-top">
+                    <span>Doppler Shift (f_d)</span>
+                    <code>2&middot;v&middot;f_c / c</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="cw-metric-fd" class="metric-num">+9.60</span>
+                    <span class="metric-unit">kHz</span>
+                  </div>
+                </div>
+                <div class="metric-box border-cyan">
+                  <div class="metric-top">
+                    <span>Carrier Wavelength (&lambda;)</span>
+                    <code>c / f_c</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="cw-metric-lambda" class="metric-num">12.50</span>
+                    <span class="metric-unit">mm</span>
+                  </div>
+                </div>
+                <div class="metric-box border-amber">
+                  <div class="metric-top">
+                    <span>Phase Shift (mod 2&pi;)</span>
+                    <code>4&pi;R / &lambda;</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="cw-metric-phase" class="metric-num">1.88</span>
+                    <span class="metric-unit">rad</span>
+                  </div>
+                </div>
+                <div class="metric-box border-rose">
+                  <div class="metric-top">
+                    <span>Target Kinematics</span>
+                    <code>Range: N/A (S=0)</code>
+                  </div>
+                  <div class="metric-bottom">
+                    <span id="cw-metric-dir" class="metric-num text-sm">Approaching</span>
+                    <span class="metric-unit">CW</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right Area: Time Domain + Doppler Spectrum -->
+          <div class="viz-column">
+            <div class="scope-card flex-1">
+              <div class="scope-header">
+                <div>
+                  <h3>Time-Domain Waveforms: TX Reference, Doppler-Shifted RX &amp; Homodyne Mixer Beat Output</h3>
+                  <p>Top: TX Carrier (Cyan) &amp; RX Echo (Rose) | Bottom: Low-Pass Filtered Mixer Output s_IF(t) = cos(2&pi;&middot;f_d&middot;t - 4&pi;R/&lambda;)</p>
+                </div>
+                <span id="cw-time-badge" class="scope-badge badge-emerald">v = +60 m/s</span>
+              </div>
+              <div class="canvas-holder">
+                <canvas id="canvas-cw-time"></canvas>
+              </div>
+            </div>
+
+            <div class="scope-card flex-1">
+              <div class="scope-header">
+                <div>
+                  <h3>Baseband Doppler Frequency Spectrum (Fast Fourier Transform - FFT)</h3>
+                  <p>Right shift (+f_d) indicates closing/approaching target; Left shift (-f_d) indicates receding target; Peak position is invariant to range R</p>
+                </div>
+                <span id="cw-fft-badge" class="scope-badge badge-purple">f_d = +9.60 kHz</span>
+              </div>
+              <div class="canvas-holder">
+                <canvas id="canvas-cw-fft"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           VIEW 4: FMCW SYSTEM WORKBENCH (DEFAULT ACTIVE VIEW)
+           ================================================================ -->
+      <section id="view-fmcw" class="tab-view active-view" aria-labelledby="fmcw-heading">
+        <div class="view-grid-2col">
+          <!-- Left Dock: Complete FMCW Parameter Suite -->
+          <aside class="control-dock">
+            <div class="panel-card compact-card">
+              <div class="panel-header">
+                <h2 id="fmcw-heading">77 GHz FMCW Workbench</h2>
+                <span class="panel-tag">Multi-Target DSP</span>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Chirp Modulation Waveform:</label>
+                <div class="segmented-row">
+                  <button type="button" class="seg-btn fmcw-mode-btn active" data-mode="sawtooth">Sawtooth (Fast)</button>
+                  <button type="button" class="seg-btn fmcw-mode-btn" data-mode="triangle">Triangular (R-v Decouple)</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="fmcw-r1">Target 1 Range (R_1) &amp; Velocity (v_1)</label>
+                  <span id="fmcw-r1-val" class="mono-val text-rose">85 m</span>
+                </div>
+                <input id="fmcw-r1" type="range" min="10" max="185" step="1" value="85" />
+                <div class="slider-header mt-xs">
+                  <label for="fmcw-v1">Target 1 Radial Velocity (v_1)</label>
+                  <span id="fmcw-v1-val" class="mono-val text-purple">+35 m/s</span>
+                </div>
+                <input id="fmcw-v1" type="range" min="-80" max="80" step="5" value="35" />
+              </div>
+
+              <div class="control-group target2-box">
+                <div class="checkbox-row">
+                  <label for="fmcw-t2-enable" class="text-amber font-bold">Enable Target 2 (Resolution Test &Delta;R)</label>
+                  <input id="fmcw-t2-enable" type="checkbox" checked />
+                </div>
+                <div id="fmcw-t2-controls">
+                  <div class="slider-header mt-xs">
+                    <label for="fmcw-r2">Target 2 Range (R_2)</label>
+                    <span id="fmcw-r2-val" class="mono-val text-amber">92 m (&Delta;d = 7.0 m)</span>
+                  </div>
+                  <input id="fmcw-r2" type="range" min="10" max="185" step="1" value="92" />
+                </div>
+              </div>
+
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="fmcw-bw">Sweep Bandwidth (B) &amp; Duration (T_c)</label>
+                  <span id="fmcw-bw-val" class="mono-val text-cyan">150 MHz</span>
+                </div>
+                <input id="fmcw-bw" type="range" min="15" max="600" step="15" value="150" />
+                <div class="slider-header mt-xs">
+                  <label for="fmcw-tc">Chirp Duration (T_c)</label>
+                  <span id="fmcw-tc-val" class="mono-val text-emerald">40 &micro;s</span>
+                </div>
+                <input id="fmcw-tc" type="range" min="10" max="100" step="5" value="40" />
+              </div>
+
+              <div class="control-group dsp-row">
+                <div class="dsp-col">
+                  <label for="fmcw-window" class="control-label">FFT Window:</label>
+                  <select id="fmcw-window" class="select-input">
+                    <option value="hann" selected>Hann Window</option>
+                    <option value="hamming">Hamming Window</option>
+                    <option value="rect">Rectangular (No Window)</option>
+                  </select>
+                </div>
+                <div class="dsp-col">
+                  <div class="slider-header">
+                    <label for="fmcw-snr">SNR</label>
+                    <span id="fmcw-snr-val" class="mono-val text-cyan">30 dB</span>
+                  </div>
+                  <input id="fmcw-snr" type="range" min="5" max="40" step="5" value="30" />
+                </div>
+              </div>
+
+              <div class="metrics-grid-3x2">
+                <div class="metric-box compact border-cyan">
+                  <div class="metric-top"><span>Slope S</span></div>
+                  <div class="metric-bottom"><span id="fmcw-metric-slope" class="metric-num">3.75</span><span class="metric-unit">MHz/&micro;s</span></div>
+                </div>
+                <div class="metric-box compact border-rose">
+                  <div class="metric-top"><span>Delay &tau;_1</span></div>
+                  <div class="metric-bottom"><span id="fmcw-metric-tau" class="metric-num">567</span><span class="metric-unit">ns</span></div>
+                </div>
+                <div class="metric-box compact border-emerald">
+                  <div class="metric-top"><span>Beat f_b,up</span></div>
+                  <div class="metric-bottom"><span id="fmcw-metric-fb" class="metric-num">2107</span><span class="metric-unit">kHz</span></div>
+                </div>
+                <div id="card-fmcw-dr" class="metric-box compact border-purple">
+                  <div class="metric-top"><span>Res &Delta;R</span></div>
+                  <div class="metric-bottom"><span id="fmcw-metric-dr" class="metric-num">1.00</span><span class="metric-unit">m</span></div>
+                </div>
+                <div class="metric-box compact border-amber">
+                  <div class="metric-top"><span>Est. R_1</span></div>
+                  <div class="metric-bottom"><span id="fmcw-metric-rmeas" class="metric-num">84.28</span><span class="metric-unit">m</span></div>
+                </div>
+                <div class="metric-box compact border-cyan">
+                  <div class="metric-top"><span>Doppler f_d1</span></div>
+                  <div class="metric-bottom"><span id="fmcw-metric-fd" class="metric-num">+18.0</span><span class="metric-unit">kHz</span></div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right Area: Block Diagram + Target Lane + 3 Synchronized Oscilloscopes -->
+          <div class="viz-column fmcw-viz-stack">
+            <!-- Top Strip: Interactive RF/DSP Block Diagram + Physical Target Lane -->
+            <div class="fmcw-top-strip">
+              <div class="arch-inspector-card">
+                <div class="arch-buttons-row" role="tablist" aria-label="FMCW Hardware Blocks">
+                  <button type="button" class="fmcw-block-btn" data-block="synth">1. PLL/VCO Chirp</button>
+                  <button type="button" class="fmcw-block-btn" data-block="ant">2. TX/RX &amp; Channel</button>
+                  <button type="button" class="fmcw-block-btn active" data-block="mixer">3. RF Mixer (&times;)</button>
+                  <button type="button" class="fmcw-block-btn" data-block="lpf">4. LPF &amp; ADC</button>
+                  <button type="button" class="fmcw-block-btn" data-block="fft">5. Range/Doppler FFT</button>
+                </div>
+                <div class="arch-detail-bar">
+                  <div class="arch-detail-text">
+                    <strong id="fmcw-blk-title" class="text-cyan">RF Homodyne Mixer (De-chirping Stage):</strong>
+                    <span id="fmcw-blk-desc">Multiplies instantaneous TX chirp with delayed RX echo to extract the low-frequency IF beat signal.</span>
+                  </div>
+                  <code id="fmcw-blk-formula" class="arch-formula-pill">f_IF = f_TX(t) - f_RX(t) = S&middot;&tau; &mp; f_d</code>
+                </div>
+              </div>
+
+              <!-- Physical Target Range Lane (0m to 200m) -->
+              <div class="target-lane-card">
+                <div class="lane-header">
+                  <span class="lane-title">Physical Radar Line-of-Sight (0m &mdash; 200m)</span>
+                  <span id="fmcw-res-status" class="res-pill res-ok">&#10003; Targets Resolved (&Delta;d = 7.0m &gt; &Delta;R = 1.00m)</span>
+                </div>
+                <div class="lane-track">
+                  <div class="radar-origin">TX/RX</div>
+                  <div id="fmcw-marker-t1" class="target-pin pin-t1" style="left: 46%;">
+                    <span id="fmcw-marker-t1-label" class="pin-tag">T1: 85m</span>
+                    <span class="pin-dot"></span>
+                  </div>
+                  <div id="fmcw-marker-t2" class="target-pin pin-t2" style="left: 49%;">
+                    <span class="pin-dot"></span>
+                    <span id="fmcw-marker-t2-label" class="pin-tag">T2: 92m</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Middle Scope: Frequency vs Time (f-t Chirp Diagram) -->
+            <div class="scope-card fmcw-mid-scope">
+              <div class="scope-header">
+                <div>
+                  <h3>A) Frequency vs. Time (f-t De-chirp Diagram: Solid TX vs. Delayed RX Echoes)</h3>
+                  <p>Vertical difference between TX ramp and delayed RX ramp equals Intermediate Beat Frequency f_b = S&middot;&tau; &mp; f_d</p>
+                </div>
+                <span id="fmcw-ft-badge" class="scope-badge badge-cyan">f_b,up = 2107 kHz</span>
+              </div>
+              <div class="canvas-holder">
+                <canvas id="canvas-fmcw-ft"></canvas>
+              </div>
+            </div>
+
+            <!-- Bottom Split Scopes: IF Beat Time-Domain + Range FFT Spectrum -->
+            <div class="fmcw-bottom-split">
+              <div class="scope-card">
+                <div class="scope-header">
+                  <div>
+                    <h3>B) Mixer Output IF Beat Signal s_IF(t)</h3>
+                    <p>Superposition of target beat tones + AWGN</p>
+                  </div>
+                  <span id="fmcw-if-badge" class="scope-badge badge-emerald">Time Domain</span>
+                </div>
+                <div class="canvas-holder">
+                  <canvas id="canvas-fmcw-if"></canvas>
+                </div>
+              </div>
+
+              <div class="scope-card">
+                <div class="scope-header">
+                  <div>
+                    <h3>C) Range Profile Spectrum (Range FFT)</h3>
+                    <p>Lobe width controlled by Bandwidth B &amp; Window</p>
+                  </div>
+                  <span id="fmcw-fft-badge" class="scope-badge badge-purple">&Delta;R = 1.00 m</span>
+                </div>
+                <div class="canvas-holder">
+                  <canvas id="canvas-fmcw-fft"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           VIEW 5: ARCHITECTURE COMPARISON & MATHEMATICAL REFERENCE
+           ================================================================ -->
+      <section id="view-compare" class="tab-view" aria-labelledby="compare-heading">
+        <div class="compare-layout">
+          <div class="panel-card compare-table-card">
+            <div class="panel-header">
+              <h2 id="compare-heading">Comprehensive Radar Architecture Comparison Matrix</h2>
+              <span class="panel-tag">System Engineering Trade-offs</span>
+            </div>
+            <div class="table-wrapper">
+              <table class="eng-table">
+                <thead>
+                  <tr>
+                    <th>Engineering Metric</th>
+                    <th class="text-amber">Pulsed Radar (ToF)</th>
+                    <th class="text-purple">Unmodulated CW Radar</th>
+                    <th class="text-cyan">FMCW Radar System</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="font-bold">Core Operating Principle</td>
+                    <td>High-power short RF pulses; measures direct round-trip delay <code>&Delta;t = 2R/c</code></td>
+                    <td>Continuous constant carrier <code>f_c</code>; extracts Doppler shift <code>f_d</code></td>
+                    <td>Continuous linear frequency sweep; measures beat frequency <code>f_b = S&middot;&tau; &mp; f_d</code></td>
+                  </tr>
+                  <tr>
+                    <td class="font-bold">Range Measurement</td>
+                    <td class="text-emerald">&#10003; Excellent for long-range surveillance (100+ km)</td>
+                    <td class="text-rose">&#10007; Impossible (Zero bandwidth B = 0, no timing marker)</td>
+                    <td class="text-emerald">&#10003; Centimeter-level precision via beat frequency FFT</td>
+                  </tr>
+                  <tr>
+                    <td class="font-bold">Velocity Measurement</td>
+                    <td>Requires coherent Pulse-Doppler burst processing</td>
+                    <td class="text-emerald">&#10003; Direct &amp; instantaneous via baseband Doppler shift</td>
+                    <td class="text-emerald">&#10003; Simultaneous Range &amp; Velocity via Triangular or 2D-FFT</td>
+                  </tr>
+                  <tr>
+                    <td class="font-bold">Near-Field Blind Zone</td>
+                    <td class="text-rose">Large (<code>R_min = c&middot;&tau;_p / 2</code>); RX blanked during TX</td>
+                    <td class="text-emerald">None (100% duty cycle simultaneous TX/RX)</td>
+                    <td class="text-emerald">Virtually zero (Detects targets centimetres from radome)</td>
+                  </tr>
+                  <tr>
+                    <td class="font-bold">Range Resolution (&Delta;R)</td>
+                    <td>Determined by pulse width <code>c&middot;&tau;_p / 2</code> (or pulse compression)</td>
+                    <td>N/A (Cannot resolve targets in range)</td>
+                    <td>Determined strictly by sweep bandwidth: <code>&Delta;R = c / 2B</code></td>
+                  </tr>
+                  <tr>
+                    <td class="font-bold">Peak Transmit Power &amp; ADC</td>
+                    <td>Kilowatts to Megawatts; requires ultra-high-speed GHz ADC</td>
+                    <td>Milliwatts (Solid-state); kHz audio-rate ADC</td>
+                    <td>Milliwatts (Solid-state CMOS); low-cost MHz IF ADC</td>
+                  </tr>
+                  <tr>
+                    <td class="font-bold">Primary Applications</td>
+                    <td>Air Traffic Control (ATC), Early Warning Defense, Weather Radar</td>
+                    <td>Police Speed Enforcement, Sports Ball Tracking, Motion Sensors</td>
+                    <td>77 GHz Automotive ADAS, Autonomous Vehicles, Radar Altimeters</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="formula-cards-grid">
+            <div class="panel-card border-cyan">
+              <h3 class="text-cyan">1. FMCW Range &amp; De-Chirp Equations</h3>
+              <div class="math-block">
+                <div>Chirp Slope: <code>S = B / T_c</code> [Hz/s]</div>
+                <div>Round-Trip Delay: <code>&tau; = 2R / c</code> [s]</div>
+                <div>Range Beat Freq: <code>f_r = S&middot;&tau; = (2&middot;B&middot;R) / (c&middot;T_c)</code></div>
+                <div class="highlight-eq">Target Range: <code>R = (c &middot; T_c &middot; f_r) / (2 &middot; B)</code></div>
+              </div>
+              <p class="math-note">Mixer multiplication converts high-frequency RF time delay into a low-frequency sinusoidal beat tone proportional to R.</p>
+            </div>
+
+            <div class="panel-card border-emerald">
+              <h3 class="text-emerald">2. Spectral Resolution &amp; Windowing</h3>
+              <div class="math-block">
+                <div>Rayleigh FFT Bin Width: <code>&Delta;f_min = 1 / T_c</code> [Hz]</div>
+                <div class="highlight-eq">Range Resolution: <code>&Delta;R = c / (2 &middot; B)</code> [m]</div>
+                <div>Sawtooth Coupling Error: <code>&delta;R = -(f_c&middot;T_c / B)&middot;v</code></div>
+                <div>Hann Window Sidelobe: <code>-31.5 dB (vs -13.3 dB Rect)</code></div>
+              </div>
+              <p class="math-note">Range resolution depends exclusively on sweep bandwidth B. Windowing suppresses spectral leakage sidelobes at the cost of a slightly wider main lobe.</p>
+            </div>
+
+            <div class="panel-card border-purple">
+              <h3 class="text-purple">3. Doppler &amp; Triangular R-v Decoupling</h3>
+              <div class="math-block">
+                <div>Doppler Frequency: <code>f_d = (2 &middot; v &middot; f_c) / c = 2v / &lambda;</code></div>
+                <div>Up-Chirp Beat: <code>f_b,up = |f_r - f_d|</code></div>
+                <div>Down-Chirp Beat: <code>f_b,down = |f_r + f_d|</code></div>
+                <div class="highlight-eq">Exact Decoupling: <code>f_r = &frac12;(f_up + f_dn), f_d = &frac12;(f_dn - f_up)</code></div>
+              </div>
+              <p class="math-note">Opposite sweep slopes (+S and -S) invert the sign of range frequency relative to Doppler shift, enabling exact algebraic separation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ==================== PERSISTENT STATUS BAR ==================== -->
+    <footer class="app-statusbar">
+      <div class="status-left">
+        <span class="status-indicator"></span>
+        <span>Engine Status: <strong id="status-sim-state" class="text-emerald">RUNNING (60 FPS)</strong></span>
+        <span class="sep">|</span>
+        <span>Active Module: <strong id="status-active-tab" class="text-cyan">04. FMCW System Workbench</strong></span>
+      </div>
+      <div class="status-right">
+        <span>Physical Constant: <code>c = 2.9979 &times; 10&#8312; m/s</code></span>
+        <span class="sep">|</span>
+        <span>Client-Side Static Architecture (Zero External Dependencies)</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modular Vanilla JS Architecture (Relative Paths for GitHub Pages) -->
+  <script src="./js/physics.js"></script>
+  <script src="./js/renderer.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
